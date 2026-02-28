@@ -25,7 +25,7 @@ jobs:
       - run: cargo fmt --all
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "style: cargo fmt"
+          commit_message: "style: cargo fmt [skip ci]"
 
   clippy:
     name: Clippy
@@ -55,3 +55,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: docker build -f infrastructure/Dockerfile .
+
+  deploy:
+    name: Deploy to Homelab
+    runs-on: [self-hosted, homelab]
+    if: github.ref == 'refs/heads/main'
+    needs: [clippy, test]
+    concurrency:
+      group: deploy-homelab
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run deploy script
+        run: bash infrastructure/scripts/deploy.sh
