@@ -42,10 +42,7 @@ pub async fn sync_routes(
 ///
 /// Note: This only removes the DNS record. Tunnel ingress rules are
 /// updated separately via `sync_routes` (which reads active apps from DB).
-pub async fn remove_dns(
-    client: &CloudflareClient,
-    hostname: &str,
-) -> Result<(), HomelabError> {
+pub async fn remove_dns(client: &CloudflareClient, hostname: &str) -> Result<(), HomelabError> {
     dns::delete_cname(client, hostname).await
 }
 

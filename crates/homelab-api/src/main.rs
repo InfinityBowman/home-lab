@@ -18,8 +18,7 @@ async fn main() -> anyhow::Result<()> {
         std::env::var("DATABASE_URL").unwrap_or_else(|_| "sqlite:data/homelab.db?mode=rwc".into());
     let git_repos_path =
         std::env::var("GIT_REPOS_PATH").unwrap_or_else(|_| "/opt/homelab/git-repos".into());
-    let base_domain =
-        std::env::var("BASE_DOMAIN").unwrap_or_else(|_| "lab.localhost".into());
+    let base_domain = std::env::var("BASE_DOMAIN").unwrap_or_else(|_| "lab.localhost".into());
     let internal_hook_secret =
         std::env::var("INTERNAL_HOOK_SECRET").unwrap_or_else(|_| "dev-secret".into());
     let port: u16 = std::env::var("PORT")

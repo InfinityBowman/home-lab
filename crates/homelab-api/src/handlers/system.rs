@@ -1,5 +1,5 @@
-use axum::extract::State;
 use axum::Json;
+use axum::extract::State;
 use serde::Serialize;
 
 use crate::error::{ApiError, ApiResponse};
@@ -26,7 +26,9 @@ pub struct SystemInfo {
     pub container_count: usize,
 }
 
-pub async fn info(State(state): State<AppState>) -> Result<Json<ApiResponse<SystemInfo>>, ApiError> {
+pub async fn info(
+    State(state): State<AppState>,
+) -> Result<Json<ApiResponse<SystemInfo>>, ApiError> {
     let apps = homelab_db::app_repo::list(&state.db).await?;
     let containers = homelab_docker::containers::list_homelab(&state.docker).await?;
 

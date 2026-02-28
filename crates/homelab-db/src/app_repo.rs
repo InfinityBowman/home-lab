@@ -9,23 +9,21 @@ pub async fn create(
     git_repo_path: &str,
     port: i64,
 ) -> Result<App, HomelabError> {
-    sqlx::query(
-        "INSERT INTO apps (id, name, domain, git_repo_path, port) VALUES (?, ?, ?, ?, ?)",
-    )
-    .bind(id)
-    .bind(name)
-    .bind(domain)
-    .bind(git_repo_path)
-    .bind(port)
-    .execute(pool)
-    .await
-    .map_err(|e| {
-        if e.to_string().contains("UNIQUE") {
-            HomelabError::AlreadyExists(format!("app '{name}' already exists"))
-        } else {
-            HomelabError::Database(e.to_string())
-        }
-    })?;
+    sqlx::query("INSERT INTO apps (id, name, domain, git_repo_path, port) VALUES (?, ?, ?, ?, ?)")
+        .bind(id)
+        .bind(name)
+        .bind(domain)
+        .bind(git_repo_path)
+        .bind(port)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            if e.to_string().contains("UNIQUE") {
+                HomelabError::AlreadyExists(format!("app '{name}' already exists"))
+            } else {
+                HomelabError::Database(e.to_string())
+            }
+        })?;
 
     get_by_id(pool, id).await
 }
@@ -66,14 +64,13 @@ pub async fn update_status(
     id: &str,
     status: &AppStatus,
 ) -> Result<(), HomelabError> {
-    let result = sqlx::query(
-        "UPDATE apps SET status = ?, updated_at = datetime('now') WHERE id = ?",
-    )
-    .bind(status.to_string())
-    .bind(id)
-    .execute(pool)
-    .await
-    .map_err(|e| HomelabError::Database(e.to_string()))?;
+    let result =
+        sqlx::query("UPDATE apps SET status = ?, updated_at = datetime('now') WHERE id = ?")
+            .bind(status.to_string())
+            .bind(id)
+            .execute(pool)
+            .await
+            .map_err(|e| HomelabError::Database(e.to_string()))?;
 
     if result.rows_affected() == 0 {
         return Err(HomelabError::NotFound(format!("app not found: {id}")));
@@ -86,14 +83,13 @@ pub async fn update_image(
     id: &str,
     docker_image: &str,
 ) -> Result<(), HomelabError> {
-    let result = sqlx::query(
-        "UPDATE apps SET docker_image = ?, updated_at = datetime('now') WHERE id = ?",
-    )
-    .bind(docker_image)
-    .bind(id)
-    .execute(pool)
-    .await
-    .map_err(|e| HomelabError::Database(e.to_string()))?;
+    let result =
+        sqlx::query("UPDATE apps SET docker_image = ?, updated_at = datetime('now') WHERE id = ?")
+            .bind(docker_image)
+            .bind(id)
+            .execute(pool)
+            .await
+            .map_err(|e| HomelabError::Database(e.to_string()))?;
 
     if result.rows_affected() == 0 {
         return Err(HomelabError::NotFound(format!("app not found: {id}")));

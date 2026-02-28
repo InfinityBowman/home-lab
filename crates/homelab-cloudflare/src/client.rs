@@ -44,18 +44,12 @@ impl CloudflareClient {
 
     /// Build the full URL for an account-scoped API path.
     pub(crate) fn account_url(&self, path: &str) -> String {
-        format!(
-            "{CF_API_BASE}/accounts/{}{path}",
-            self.config.account_id
-        )
+        format!("{CF_API_BASE}/accounts/{}{path}", self.config.account_id)
     }
 
     /// Build the full URL for a zone-scoped API path.
     pub(crate) fn zone_url(&self, path: &str) -> String {
-        format!(
-            "{CF_API_BASE}/zones/{}{path}",
-            self.config.zone_id
-        )
+        format!("{CF_API_BASE}/zones/{}{path}", self.config.zone_id)
     }
 
     /// Get the Authorization header value.

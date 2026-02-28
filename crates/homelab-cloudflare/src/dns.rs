@@ -1,7 +1,7 @@
 use homelab_core::HomelabError;
 use serde::Deserialize;
 
-use crate::client::{cf_error, CfApiResponse, CloudflareClient};
+use crate::client::{CfApiResponse, CloudflareClient, cf_error};
 
 #[derive(Debug, Deserialize)]
 struct DnsRecord {
@@ -12,10 +12,7 @@ struct DnsRecord {
 /// Points to `{tunnel_id}.cfargotunnel.com`.
 ///
 /// If the record already exists, this is a no-op.
-pub async fn ensure_cname(
-    client: &CloudflareClient,
-    hostname: &str,
-) -> Result<(), HomelabError> {
+pub async fn ensure_cname(client: &CloudflareClient, hostname: &str) -> Result<(), HomelabError> {
     let tunnel_target = format!("{}.cfargotunnel.com", client.tunnel_id());
 
     // Check if CNAME already exists
@@ -46,10 +43,9 @@ pub async fn ensure_cname(
         .map_err(|e| HomelabError::Cloudflare(format!("DNS create request: {e}")))?;
 
     let status = resp.status();
-    let api_resp: CfApiResponse<DnsRecord> = resp
-        .json()
-        .await
-        .map_err(|e| HomelabError::Cloudflare(format!("DNS create response parse ({status}): {e}")))?;
+    let api_resp: CfApiResponse<DnsRecord> = resp.json().await.map_err(|e| {
+        HomelabError::Cloudflare(format!("DNS create response parse ({status}): {e}"))
+    })?;
 
     if !api_resp.success {
         return Err(cf_error("DNS create failed", status, api_resp.errors));
@@ -60,10 +56,7 @@ pub async fn ensure_cname(
 }
 
 /// Delete the CNAME record for the given hostname if it exists.
-pub async fn delete_cname(
-    client: &CloudflareClient,
-    hostname: &str,
-) -> Result<(), HomelabError> {
+pub async fn delete_cname(client: &CloudflareClient, hostname: &str) -> Result<(), HomelabError> {
     let record_id = match find_cname(client, hostname).await? {
         Some(id) => id,
         None => {
@@ -83,10 +76,9 @@ pub async fn delete_cname(
         .map_err(|e| HomelabError::Cloudflare(format!("DNS delete request: {e}")))?;
 
     let status = resp.status();
-    let api_resp: CfApiResponse = resp
-        .json()
-        .await
-        .map_err(|e| HomelabError::Cloudflare(format!("DNS delete response parse ({status}): {e}")))?;
+    let api_resp: CfApiResponse = resp.json().await.map_err(|e| {
+        HomelabError::Cloudflare(format!("DNS delete response parse ({status}): {e}"))
+    })?;
 
     if !api_resp.success {
         return Err(cf_error("DNS delete failed", status, api_resp.errors));
@@ -113,16 +105,15 @@ async fn find_cname(
         .map_err(|e| HomelabError::Cloudflare(format!("DNS list request: {e}")))?;
 
     let status = resp.status();
-    let api_resp: CfApiResponse<Vec<DnsRecord>> = resp
-        .json()
-        .await
-        .map_err(|e| HomelabError::Cloudflare(format!("DNS list response parse ({status}): {e}")))?;
+    let api_resp: CfApiResponse<Vec<DnsRecord>> = resp.json().await.map_err(|e| {
+        HomelabError::Cloudflare(format!("DNS list response parse ({status}): {e}"))
+    })?;
 
     if !api_resp.success {
         return Err(cf_error("DNS list failed", status, api_resp.errors));
     }
 
-    Ok(api_resp.result.and_then(|records| {
-        records.into_iter().next().map(|r| r.id)
-    }))
+    Ok(api_resp
+        .result
+        .and_then(|records| records.into_iter().next().map(|r| r.id)))
 }

@@ -1,5 +1,5 @@
-use bollard::network::{CreateNetworkOptions, ListNetworksOptions};
 use bollard::Docker;
+use bollard::network::{CreateNetworkOptions, ListNetworksOptions};
 use homelab_core::HomelabError;
 use std::collections::HashMap;
 

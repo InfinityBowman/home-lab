@@ -1,14 +1,14 @@
+use bollard::Docker;
 use bollard::container::{
     Config, CreateContainerOptions, ListContainersOptions, RemoveContainerOptions,
     StartContainerOptions, StopContainerOptions,
 };
 use bollard::models::{ContainerSummary, HostConfig};
-use bollard::Docker;
 use homelab_core::HomelabError;
 use std::collections::HashMap;
 
-use crate::labels;
 use crate::HOMELAB_NETWORK;
+use crate::labels;
 
 pub struct ContainerConfig {
     pub app_name: String,
@@ -101,7 +101,10 @@ pub async fn start(docker: &Docker, app_name: &str) -> Result<(), HomelabError> 
 pub async fn restart(docker: &Docker, app_name: &str) -> Result<(), HomelabError> {
     let name = container_name(app_name);
     docker
-        .restart_container(&name, Some(bollard::container::RestartContainerOptions { t: 10 }))
+        .restart_container(
+            &name,
+            Some(bollard::container::RestartContainerOptions { t: 10 }),
+        )
         .await
         .map_err(|e| HomelabError::Docker(format!("restart container: {e}")))?;
 

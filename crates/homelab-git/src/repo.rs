@@ -20,9 +20,7 @@ pub async fn init_bare(path: &str) -> Result<(), HomelabError> {
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(HomelabError::Internal(format!(
-            "git init failed: {stderr}"
-        )));
+        return Err(HomelabError::Internal(format!("git init failed: {stderr}")));
     }
 
     tracing::info!(path = %path, "bare repo initialized");

@@ -1,7 +1,7 @@
 use homelab_core::HomelabError;
 use serde::{Deserialize, Serialize};
 
-use crate::client::{cf_error, CfApiResponse, CloudflareClient};
+use crate::client::{CfApiResponse, CloudflareClient, cf_error};
 
 /// A single tunnel ingress rule.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -89,9 +89,7 @@ mod tests {
 
     #[test]
     fn build_ingress_rules_appends_catchall() {
-        let routes = vec![
-            ("app.lab.dev".into(), "http://homelab-traefik:80".into()),
-        ];
+        let routes = vec![("app.lab.dev".into(), "http://homelab-traefik:80".into())];
         let rules = build_ingress_rules(&routes);
         assert_eq!(rules.len(), 2);
         assert_eq!(rules[0].hostname.as_deref(), Some("app.lab.dev"));

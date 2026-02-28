@@ -14,12 +14,18 @@ jobs:
   fmt:
     name: Format
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
-      - run: cargo fmt --all --check
+      - run: cargo fmt --all
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "style: cargo fmt"
 
   clippy:
     name: Clippy
@@ -45,7 +51,7 @@ jobs:
     name: Docker Build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-    needs: [fmt, clippy, test]
+    needs: [clippy, test]
     steps:
       - uses: actions/checkout@v4
       - run: docker build -f infrastructure/Dockerfile .

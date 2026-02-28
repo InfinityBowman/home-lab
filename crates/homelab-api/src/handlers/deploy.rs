@@ -1,5 +1,5 @@
-use axum::extract::{Path, State};
 use axum::Json;
+use axum::extract::{Path, State};
 use bollard::Docker;
 use homelab_cloudflare::client::CloudflareClient;
 use homelab_core::{AppStatus, DeployStatus, HomelabError};
@@ -80,8 +80,7 @@ pub async fn execute(ctx: DeployContext) {
             Some(&e.to_string()),
         )
         .await;
-        let _ =
-            homelab_db::app_repo::update_status(&ctx.db, &ctx.app_id, &AppStatus::Failed).await;
+        let _ = homelab_db::app_repo::update_status(&ctx.db, &ctx.app_id, &AppStatus::Failed).await;
     }
 }
 
@@ -101,7 +100,9 @@ async fn execute_inner(ctx: &DeployContext) -> Result<(), HomelabError> {
     .await?;
 
     // Step 2: Checkout code from bare repo
-    if let Err(e) = homelab_git::repo::checkout(&ctx.git_repo_path, &ctx.commit_sha, &build_dir).await {
+    if let Err(e) =
+        homelab_git::repo::checkout(&ctx.git_repo_path, &ctx.commit_sha, &build_dir).await
+    {
         let _ = tokio::fs::remove_dir_all(&build_dir).await;
         return Err(e);
     }

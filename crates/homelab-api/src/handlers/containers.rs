@@ -1,5 +1,5 @@
-use axum::extract::{Path, Query, State};
 use axum::Json;
+use axum::extract::{Path, Query, State};
 use homelab_core::{AppStatus, HomelabError};
 use serde::Deserialize;
 
@@ -32,13 +32,7 @@ pub async fn start(
     homelab_docker::containers::create_and_start(&state.docker, &config).await?;
     homelab_db::app_repo::update_status(&state.db, &app.id, &AppStatus::Running).await?;
 
-    homelab_db::audit_repo::create(
-        &state.db,
-        Some(&app.id),
-        "container.started",
-        None,
-    )
-    .await?;
+    homelab_db::audit_repo::create(&state.db, Some(&app.id), "container.started", None).await?;
 
     Ok(ApiResponse::ok_empty())
 }
@@ -52,13 +46,7 @@ pub async fn stop(
     homelab_docker::containers::stop(&state.docker, &app.name).await?;
     homelab_db::app_repo::update_status(&state.db, &app.id, &AppStatus::Stopped).await?;
 
-    homelab_db::audit_repo::create(
-        &state.db,
-        Some(&app.id),
-        "container.stopped",
-        None,
-    )
-    .await?;
+    homelab_db::audit_repo::create(&state.db, Some(&app.id), "container.stopped", None).await?;
 
     Ok(ApiResponse::ok_empty())
 }
@@ -72,13 +60,7 @@ pub async fn restart(
     homelab_docker::containers::restart(&state.docker, &app.name).await?;
     homelab_db::app_repo::update_status(&state.db, &app.id, &AppStatus::Running).await?;
 
-    homelab_db::audit_repo::create(
-        &state.db,
-        Some(&app.id),
-        "container.restarted",
-        None,
-    )
-    .await?;
+    homelab_db::audit_repo::create(&state.db, Some(&app.id), "container.restarted", None).await?;
 
     Ok(ApiResponse::ok_empty())
 }

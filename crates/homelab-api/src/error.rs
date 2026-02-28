@@ -49,9 +49,10 @@ impl IntoResponse for ApiError {
             HomelabError::Docker(_)
             | HomelabError::Cloudflare(_)
             | HomelabError::Database(_)
-            | HomelabError::Internal(_) => {
-                (StatusCode::INTERNAL_SERVER_ERROR, "an internal error occurred".into())
-            }
+            | HomelabError::Internal(_) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "an internal error occurred".into(),
+            ),
         };
 
         tracing::error!(error = %self.0, "api error");

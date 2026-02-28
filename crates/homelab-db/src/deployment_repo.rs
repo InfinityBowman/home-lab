@@ -1,4 +1,4 @@
-use homelab_core::{Deployment, DeployStatus, HomelabError};
+use homelab_core::{DeployStatus, Deployment, HomelabError};
 use sqlx::SqlitePool;
 
 pub async fn create(
@@ -29,10 +29,7 @@ pub async fn get_by_id(pool: &SqlitePool, id: &str) -> Result<Deployment, Homela
     Ok(row.into())
 }
 
-pub async fn list_by_app(
-    pool: &SqlitePool,
-    app_id: &str,
-) -> Result<Vec<Deployment>, HomelabError> {
+pub async fn list_by_app(pool: &SqlitePool, app_id: &str) -> Result<Vec<Deployment>, HomelabError> {
     let rows = sqlx::query_as::<_, DeploymentRow>(
         "SELECT * FROM deployments WHERE app_id = ? ORDER BY started_at DESC",
     )
@@ -80,7 +77,9 @@ pub async fn update_status(
     };
 
     if result.rows_affected() == 0 {
-        return Err(HomelabError::NotFound(format!("deployment not found: {id}")));
+        return Err(HomelabError::NotFound(format!(
+            "deployment not found: {id}"
+        )));
     }
     Ok(())
 }

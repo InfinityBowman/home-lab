@@ -58,13 +58,12 @@ pub async fn bulk_set(
 }
 
 pub async fn get_by_app(pool: &SqlitePool, app_id: &str) -> Result<Vec<EnvVar>, HomelabError> {
-    let rows = sqlx::query_as::<_, EnvVarRow>(
-        "SELECT * FROM env_vars WHERE app_id = ? ORDER BY key",
-    )
-    .bind(app_id)
-    .fetch_all(pool)
-    .await
-    .map_err(|e| HomelabError::Database(e.to_string()))?;
+    let rows =
+        sqlx::query_as::<_, EnvVarRow>("SELECT * FROM env_vars WHERE app_id = ? ORDER BY key")
+            .bind(app_id)
+            .fetch_all(pool)
+            .await
+            .map_err(|e| HomelabError::Database(e.to_string()))?;
 
     Ok(rows.into_iter().map(Into::into).collect())
 }

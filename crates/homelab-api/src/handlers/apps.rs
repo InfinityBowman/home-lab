@@ -1,5 +1,5 @@
-use axum::extract::{Path, State};
 use axum::Json;
+use axum::extract::{Path, State};
 use homelab_core::{App, CreateAppRequest, HomelabError, UpdateAppRequest};
 use uuid::Uuid;
 
@@ -18,15 +18,13 @@ pub async fn create(
     // Validate name (DNS label rules)
     let name = &req.name;
     if name.is_empty() || name.len() > 63 {
-        return Err(
-            HomelabError::InvalidInput("app name must be 1-63 characters".into()).into(),
-        );
+        return Err(HomelabError::InvalidInput("app name must be 1-63 characters".into()).into());
     }
     if !name.starts_with(|c: char| c.is_ascii_lowercase()) {
-        return Err(
-            HomelabError::InvalidInput("app name must start with a lowercase letter".into())
-                .into(),
-        );
+        return Err(HomelabError::InvalidInput(
+            "app name must start with a lowercase letter".into(),
+        )
+        .into());
     }
     if name.ends_with('-') {
         return Err(
@@ -45,9 +43,7 @@ pub async fn create(
 
     // Validate port
     if req.port < 1 || req.port > 65535 {
-        return Err(
-            HomelabError::InvalidInput("port must be between 1 and 65535".into()).into(),
-        );
+        return Err(HomelabError::InvalidInput("port must be between 1 and 65535".into()).into());
     }
 
     let id = Uuid::new_v4().to_string();

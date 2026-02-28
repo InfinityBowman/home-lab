@@ -1,5 +1,5 @@
-use bollard::container::LogsOptions;
 use bollard::Docker;
+use bollard::container::LogsOptions;
 use futures_util::StreamExt;
 use homelab_core::HomelabError;
 

@@ -1,6 +1,6 @@
+use axum::Router;
 use axum::middleware;
 use axum::routing::{delete, get, post};
-use axum::Router;
 
 use crate::handlers;
 use crate::middleware::auth;
@@ -13,7 +13,10 @@ pub fn build(state: AppState) -> Router {
     // Protected routes (require Bearer token)
     let protected = Router::new()
         // Apps
-        .route("/apps", get(handlers::apps::list).post(handlers::apps::create))
+        .route(
+            "/apps",
+            get(handlers::apps::list).post(handlers::apps::create),
+        )
         .route(
             "/apps/{name}",
             get(handlers::apps::get)
@@ -28,10 +31,7 @@ pub fn build(state: AppState) -> Router {
         .route("/apps/{name}/logs", get(handlers::containers::logs))
         // Deployments
         .route("/apps/{name}/deploy", post(handlers::deploy::trigger))
-        .route(
-            "/apps/{name}/deployments",
-            get(handlers::deployments::list),
-        )
+        .route("/apps/{name}/deployments", get(handlers::deployments::list))
         .route(
             "/apps/{name}/deployments/{id}",
             get(handlers::deployments::get),
@@ -55,10 +55,7 @@ pub fn build(state: AppState) -> Router {
 
     // Git webhook (internal, also auth-protected)
     let hooks = Router::new()
-        .route(
-            "/hooks/git/{app_name}",
-            post(handlers::hooks::git_push),
-        )
+        .route("/hooks/git/{app_name}", post(handlers::hooks::git_push))
         .layer(middleware::from_fn_with_state(
             state.clone(),
             auth::require_secret,

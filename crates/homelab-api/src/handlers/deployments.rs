@@ -1,8 +1,8 @@
-use axum::extract::{Path, State};
 use axum::Json;
+use axum::extract::{Path, State};
 use bollard::Docker;
 use homelab_cloudflare::client::CloudflareClient;
-use homelab_core::{AppStatus, Deployment, DeployStatus, HomelabError};
+use homelab_core::{AppStatus, DeployStatus, Deployment, HomelabError};
 use sqlx::SqlitePool;
 use uuid::Uuid;
 
@@ -125,8 +125,7 @@ async fn execute_rollback(ctx: RollbackContext) {
             Some(&e.to_string()),
         )
         .await;
-        let _ =
-            homelab_db::app_repo::update_status(&ctx.db, &ctx.app_id, &AppStatus::Failed).await;
+        let _ = homelab_db::app_repo::update_status(&ctx.db, &ctx.app_id, &AppStatus::Failed).await;
     }
 }
 

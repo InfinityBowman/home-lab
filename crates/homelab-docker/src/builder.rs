@@ -1,5 +1,5 @@
-use bollard::image::{BuildImageOptions, TagImageOptions};
 use bollard::Docker;
+use bollard::image::{BuildImageOptions, TagImageOptions};
 use futures_util::StreamExt;
 use homelab_core::HomelabError;
 
@@ -42,9 +42,7 @@ pub async fn build_image(
                 }
                 if let Some(error) = &output.error {
                     build_log.push_str(&format!("ERROR: {error}\n"));
-                    return Err(HomelabError::Docker(format!(
-                        "image build failed: {error}"
-                    )));
+                    return Err(HomelabError::Docker(format!("image build failed: {error}")));
                 }
             }
             Err(e) => {
