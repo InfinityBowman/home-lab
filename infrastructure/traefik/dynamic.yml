@@ -1,0 +1,53 @@
+http:
+  # ── Middlewares ──────────────────────────────────────────────────────────────
+
+  middlewares:
+    # Security response headers
+    security-headers:
+      headers:
+        customResponseHeaders:
+          X-Frame-Options: "DENY"
+          X-Content-Type-Options: "nosniff"
+          X-XSS-Protection: "1; mode=block"
+          Referrer-Policy: "strict-origin-when-cross-origin"
+          Permissions-Policy: "camera=(), microphone=(), geolocation=()"
+          X-Robots-Tag: "noindex, nofollow"
+
+    # Rate limiting — token bucket: refills at 100 req/s, burst capacity 200
+    rate-limit:
+      rateLimit:
+        average: 100
+        burst: 200
+
+    # IPAllowList that matches nothing — used by the scanner-block router
+    # to return 403 Forbidden for every request that reaches it
+    block-all:
+      ipAllowList:
+        sourceRange:
+          - "0.0.0.0/32"
+
+    # Chain applied to all app routers via Docker labels
+    secure-chain:
+      chain:
+        middlewares:
+          - security-headers
+          - rate-limit
+
+  # ── Scanner-Blocking Router ─────────────────────────────────────────────────
+  #
+  # Priority 999999 ensures this is evaluated before any Host-based app router
+  # (whose default priority is the rule character count, typically 30-80).
+  #
+  # Matching requests hit the block-all middleware (ipAllowList with an
+  # impossible source range) and get 403 Forbidden. The noop@internal service
+  # is never reached but Traefik requires a service field.
+
+  routers:
+    block-scanners:
+      rule: "PathRegexp(`(?i)^/(wp-admin|wp-login|wp-content|wp-includes|wordpress|xmlrpc\\.php|\\.env|\\.git|\\.svn|\\.htaccess|\\.htpasswd|phpmyadmin|pma|myadmin|mysql|adminer|cgi-bin|shell|admin/config|config\\.php|vendor/phpunit|eval-stdin\\.php|owa|autodiscover|ecp|telescope|api/v1/pods|actuator|debug|console|solr|\\.aws|\\.docker|backup|dump|db\\.sql)(/.*)?$`)"
+      entryPoints:
+        - web
+      middlewares:
+        - block-all
+      service: noop@internal
+      priority: 999999

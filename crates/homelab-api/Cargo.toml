@@ -1,0 +1,22 @@
+[package]
+name = "homelab-api"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+homelab-core = { path = "../homelab-core" }
+homelab-db = { path = "../homelab-db" }
+homelab-docker = { path = "../homelab-docker" }
+homelab-git = { path = "../homelab-git" }
+homelab-cloudflare = { path = "../homelab-cloudflare" }
+axum = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+tower-http = { workspace = true }
+sqlx = { workspace = true }
+bollard = { workspace = true }
+anyhow = { workspace = true }

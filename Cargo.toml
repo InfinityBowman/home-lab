@@ -1,0 +1,27 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/homelab-core",
+    "crates/homelab-db",
+    "crates/homelab-docker",
+    "crates/homelab-cloudflare",
+    "crates/homelab-git",
+    "crates/homelab-api",
+    "crates/homelab-dashboard",
+]
+
+[workspace.dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+thiserror = "2"
+anyhow = "1"
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+sqlx = { version = "0.8", features = ["runtime-tokio", "sqlite", "migrate"] }
+bollard = "0.18"
+axum = "0.8"
+reqwest = { version = "0.12", features = ["json"] }
+tower-http = { version = "0.6", features = ["cors", "trace"] }
