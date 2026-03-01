@@ -1,0 +1,18 @@
+name: paleo-gateway
+
+services:
+  gateway:
+    image: ghcr.io/infinitybowman/paleo-waifu-gateway:latest
+    container_name: homelab-paleo-gateway
+    restart: unless-stopped
+    environment:
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN:?Set DISCORD_BOT_TOKEN in .env}
+      - XP_API_URL=${XP_API_URL:?Set XP_API_URL in .env}
+      - XP_API_SECRET=${XP_API_SECRET:?Set XP_API_SECRET in .env}
+      - NODE_ENV=production
+    networks:
+      - homelab
+
+networks:
+  homelab:
+    external: true

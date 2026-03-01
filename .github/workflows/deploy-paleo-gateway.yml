@@ -1,0 +1,25 @@
+name: Deploy Paleo Gateway
+
+on:
+  repository_dispatch:
+    types: [deploy-paleo-gateway]
+
+jobs:
+  deploy:
+    name: Pull & Restart
+    runs-on: [self-hosted, homelab]
+    concurrency:
+      group: deploy-paleo-gateway
+      cancel-in-progress: true
+    defaults:
+      run:
+        working-directory: /opt/homelab/repo/services/paleo-gateway
+    steps:
+      - name: Pull latest image
+        run: docker compose pull
+
+      - name: Restart service
+        run: docker compose up -d
+
+      - name: Show status
+        run: docker ps --filter name=homelab-paleo-gateway --format "table {{.Names}}\t{{.Status}}\t{{.Image}}"
