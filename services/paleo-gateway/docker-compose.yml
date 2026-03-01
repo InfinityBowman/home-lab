@@ -10,6 +10,7 @@ services:
       - XP_API_URL=${XP_API_URL:?Set XP_API_URL in .env}
       - XP_API_SECRET=${XP_API_SECRET:?Set XP_API_SECRET in .env}
       - NODE_ENV=production
+    mem_limit: 256m
     networks:
       - homelab
 
