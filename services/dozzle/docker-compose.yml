@@ -1,0 +1,20 @@
+name: dozzle
+
+services:
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: homelab-dozzle
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - homelab
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homelab-dozzle.rule=Host(`dozzle.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.homelab-dozzle.middlewares=secure-chain@file"
+      - "traefik.http.services.homelab-dozzle.loadbalancer.server.port=8080"
+
+networks:
+  homelab:
+    external: true

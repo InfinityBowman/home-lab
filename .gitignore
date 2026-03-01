@@ -22,3 +22,9 @@ Thumbs.db
 
 # Docker
 docker-compose.override.yml
+
+# Terraform
+*.tfstate
+*.tfstate.backup
+*.tfvars
+.terraform/
