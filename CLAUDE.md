@@ -30,6 +30,8 @@ infrastructure/           Core stack (Traefik, cloudflared, PaaS API)
 services/                 Self-hosted apps (each independent docker-compose)
   n8n/                    Workflow automation
   plausible/              Privacy-first analytics (+ ClickHouse + Postgres)
+  dozzle/                 Real-time Docker log viewer
+  paleo-gateway/          Discord Gateway listener for PaleoWaifu XP system
 
 crates/                   Rust workspace (7 crates)
   homelab-core/           Shared types (App, Deployment, EnvVar, AppStatus)
@@ -42,6 +44,10 @@ crates/                   Rust workspace (7 crates)
 
 migrations/               SQLite migrations (embedded at compile time by sqlx)
 docs/                     Detailed reference docs
+
+infrastructure/terraform/ Cloudflare zone config (Terraform)
+  main.tf                 Rate limiting, WAF rules, Cloudflare Access policies
+  variables.tf            API token, account/zone IDs, admin email
 ```
 
 ## Adding a New Service
@@ -78,6 +84,31 @@ docs/                     Detailed reference docs
 3. For each `services/*/`: if `git diff` shows changes since last deploy, runs `docker compose up -d`
 4. `docker image prune -f`
 
+## Terraform (Cloudflare Zone Config)
+
+Zone-level Cloudflare configuration managed via Terraform in `infrastructure/terraform/`:
+
+- **Rate limiting** — 20 requests per 10s on `/api/*` endpoints
+- **WAF custom rules** — blocks sensitive file probes, path traversal, exploit paths, SQLi/XSS
+- **Cloudflare Access** — Zero Trust auth gate on admin services (e.g. `dozzle.jacobmaynard.dev`)
+
+State is stored locally (gitignored). To apply changes:
+
+```bash
+cd infrastructure/terraform
+terraform init    # first time only
+terraform plan
+terraform apply
+```
+
+Requires `terraform.tfvars` with `cloudflare_api_token`, `account_id`, and `zone_id` (see `.tfvars.example`).
+
+## External Service Deploys
+
+Some services pull pre-built images from GHCR rather than building locally:
+
+- **paleo-gateway** — Image built by `paleo-waifu` repo CI, pushed to `ghcr.io/infinitybowman/paleo-waifu-gateway`. Deployed via repository dispatch: paleo-waifu CI triggers `.github/workflows/deploy-paleo-gateway.yml` which pulls and restarts the container on the self-hosted runner.
+
 ## Tech Stack
 
 - **Language:** Rust (axum, bollard, sqlx, reqwest)
@@ -85,4 +116,5 @@ docs/                     Detailed reference docs
 - **Proxy:** Traefik (Docker label auto-discovery, `secure-chain` middleware)
 - **Tunnel:** Cloudflare Tunnel (remote-managed, wildcard ingress)
 - **Dashboard:** HTMX + Askama + Tailwind/Pico CSS
+- **IaC:** Terraform (Cloudflare provider) for zone-level security and access policies
 - **CI:** GitHub Actions → self-hosted runner on the laptop
