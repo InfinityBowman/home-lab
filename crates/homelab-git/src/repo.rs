@@ -78,7 +78,11 @@ pub async fn get_head_sha(repo_path: &str) -> Result<String, HomelabError> {
 }
 
 /// Seed a bare repo with an initial commit containing a starter Dockerfile.
-pub async fn seed_initial_commit(repo_path: &str, app_name: &str, port: i64) -> Result<(), HomelabError> {
+pub async fn seed_initial_commit(
+    repo_path: &str,
+    app_name: &str,
+    port: i64,
+) -> Result<(), HomelabError> {
     // Create a temp working directory
     let tmp = format!("/tmp/homelab-seed-{app_name}");
     let _ = tokio::fs::remove_dir_all(&tmp).await;
@@ -132,7 +136,8 @@ server.listen({port}, () => console.log("Listening on :{port}"));
             let stderr = String::from_utf8_lossy(&output.stderr);
             let _ = tokio::fs::remove_dir_all(&tmp).await;
             return Err(HomelabError::Internal(format!(
-                "seed git {} failed: {stderr}", args.join(" ")
+                "seed git {} failed: {stderr}",
+                args.join(" ")
             )));
         }
     }
@@ -148,7 +153,9 @@ server.listen({port}, () => console.log("Listening on :{port}"));
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         let _ = tokio::fs::remove_dir_all(&tmp).await;
-        return Err(HomelabError::Internal(format!("seed git push failed: {stderr}")));
+        return Err(HomelabError::Internal(format!(
+            "seed git push failed: {stderr}"
+        )));
     }
 
     let _ = tokio::fs::remove_dir_all(&tmp).await;

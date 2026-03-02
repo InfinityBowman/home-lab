@@ -75,7 +75,9 @@ pub async fn create(
     }
 
     // Seed the repo with a starter Dockerfile and app (non-fatal)
-    if let Err(e) = homelab_git::repo::seed_initial_commit(&git_repo_path, &req.name, req.port).await {
+    if let Err(e) =
+        homelab_git::repo::seed_initial_commit(&git_repo_path, &req.name, req.port).await
+    {
         tracing::warn!(app = %req.name, error = %e, "failed to seed initial commit");
     }
 
