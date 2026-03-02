@@ -139,3 +139,27 @@ resource "cloudflare_zero_trust_access_application" "dozzle" {
   type     = "self_hosted"
   policies = [{ id = cloudflare_zero_trust_access_policy.admin_only.id }]
 }
+
+resource "cloudflare_zero_trust_access_application" "paas_api" {
+  zone_id  = var.zone_id
+  name     = "PaaS API"
+  domain   = "paas.${var.domain}"
+  type     = "self_hosted"
+  policies = [{ id = cloudflare_zero_trust_access_policy.admin_only.id }]
+}
+
+resource "cloudflare_zero_trust_access_application" "dashboard" {
+  zone_id  = var.zone_id
+  name     = "PaaS Dashboard"
+  domain   = "dashboard.${var.domain}"
+  type     = "self_hosted"
+  policies = [{ id = cloudflare_zero_trust_access_policy.admin_only.id }]
+}
+
+resource "cloudflare_zero_trust_access_application" "n8n" {
+  zone_id  = var.zone_id
+  name     = "n8n Workflows"
+  domain   = "n8n.${var.domain}"
+  type     = "self_hosted"
+  policies = [{ id = cloudflare_zero_trust_access_policy.admin_only.id }]
+}

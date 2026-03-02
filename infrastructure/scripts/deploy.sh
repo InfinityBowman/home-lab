@@ -84,11 +84,30 @@ else
     log "No services directory found, skipping."
 fi
 
-# ─── 4. Cleanup ─────────────────────────────────────────────────────────────
+# ─── 4. Apply Terraform (Cloudflare zone config) ─────────────────────────────
+TERRAFORM_DIR="${INFRA_DIR}/terraform"
+if [[ -d "${TERRAFORM_DIR}" ]] && command -v terraform &>/dev/null; then
+    if git diff --quiet "${BEFORE_SHA}" "${AFTER_SHA}" -- "infrastructure/terraform/"; then
+        log "Terraform: no changes, skipping."
+    else
+        log "Terraform: changes detected, applying..."
+        cd "${TERRAFORM_DIR}"
+        terraform init -input=false
+        terraform apply -auto-approve -input=false
+        cd "${REPO_DIR}"
+        log "Terraform applied."
+    fi
+else
+    if [[ -d "${TERRAFORM_DIR}" ]]; then
+        warn "Terraform directory found but 'terraform' not installed, skipping."
+    fi
+fi
+
+# ─── 5. Cleanup ─────────────────────────────────────────────────────────────
 log "Pruning dangling images..."
 docker image prune -f
 
-# ─── 5. Status ──────────────────────────────────────────────────────────────
+# ─── 6. Status ──────────────────────────────────────────────────────────────
 echo ""
 log "Deploy complete. Container status:"
 echo ""
