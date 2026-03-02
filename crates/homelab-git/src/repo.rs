@@ -120,6 +120,8 @@ server.listen({port}, () => console.log("Listening on :{port}"));
     // Git init, add, commit, then push to bare repo
     let commands = [
         vec!["git", "init", "-b", "main"],
+        vec!["git", "config", "user.email", "paas@homelab"],
+        vec!["git", "config", "user.name", "HomeLab PaaS"],
         vec!["git", "add", "."],
         vec!["git", "commit", "-m", "initial scaffold"],
     ];
