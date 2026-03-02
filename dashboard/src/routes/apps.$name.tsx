@@ -156,14 +156,14 @@ function GettingStarted({ appName }: { appName: string }) {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">1. Clone the repo</p>
+          <p className="text-sm text-muted-foreground">1. Clone the repo (includes a starter Dockerfile and app)</p>
           <CodeBlock>{`git clone ${cloneUrl}`}</CodeBlock>
         </div>
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">
-            2. Add a Dockerfile and your app code, then push to deploy
+            2. Edit your code, then push to deploy
           </p>
-          <CodeBlock>{`cd ${appName} && git add . && git commit -m "initial" && git push origin main`}</CodeBlock>
+          <CodeBlock>{`cd ${appName} && git push origin main`}</CodeBlock>
         </div>
       </CardContent>
     </Card>

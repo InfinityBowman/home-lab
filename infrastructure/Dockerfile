@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y \
     ca-certificates git curl \
     && rm -rf /var/lib/apt/lists/*
 
-RUN groupadd -r homelab && useradd -r -g homelab -u 1001 homelab \
+RUN groupadd -g 1000 homelab && useradd -r -g homelab -u 1000 homelab \
     && mkdir -p /data /git-repos \
     && chown homelab:homelab /data /git-repos
 
