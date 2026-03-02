@@ -77,6 +77,85 @@ pub async fn get_head_sha(repo_path: &str) -> Result<String, HomelabError> {
     Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
 }
 
+/// Seed a bare repo with an initial commit containing a starter Dockerfile.
+pub async fn seed_initial_commit(repo_path: &str, app_name: &str, port: i64) -> Result<(), HomelabError> {
+    // Create a temp working directory
+    let tmp = format!("/tmp/homelab-seed-{app_name}");
+    let _ = tokio::fs::remove_dir_all(&tmp).await;
+    tokio::fs::create_dir_all(&tmp)
+        .await
+        .map_err(|e| HomelabError::Internal(format!("create seed dir: {e}")))?;
+
+    // Write starter Dockerfile
+    let dockerfile = format!(
+        r#"FROM node:22-alpine
+WORKDIR /app
+COPY . .
+EXPOSE {port}
+CMD ["node", "server.js"]
+"#
+    );
+    tokio::fs::write(format!("{tmp}/Dockerfile"), &dockerfile)
+        .await
+        .map_err(|e| HomelabError::Internal(format!("write Dockerfile: {e}")))?;
+
+    // Write a simple server.js
+    let server = format!(
+        r#"const http = require("http");
+const server = http.createServer((req, res) => {{
+  res.writeHead(200, {{ "Content-Type": "text/plain" }});
+  res.end("Hello from {app_name}!\\n");
+}});
+server.listen({port}, () => console.log("Listening on :{port}"));
+"#
+    );
+    tokio::fs::write(format!("{tmp}/server.js"), &server)
+        .await
+        .map_err(|e| HomelabError::Internal(format!("write server.js: {e}")))?;
+
+    // Git init, add, commit, then push to bare repo
+    let commands = [
+        vec!["git", "init", "-b", "main"],
+        vec!["git", "add", "."],
+        vec!["git", "commit", "-m", "initial scaffold"],
+    ];
+
+    for args in &commands {
+        let output = Command::new(args[0])
+            .args(&args[1..])
+            .current_dir(&tmp)
+            .output()
+            .await
+            .map_err(|e| HomelabError::Internal(format!("seed git {}: {e}", args.join(" "))))?;
+
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            let _ = tokio::fs::remove_dir_all(&tmp).await;
+            return Err(HomelabError::Internal(format!(
+                "seed git {} failed: {stderr}", args.join(" ")
+            )));
+        }
+    }
+
+    // Push to the bare repo
+    let output = Command::new("git")
+        .args(["push", repo_path, "main"])
+        .current_dir(&tmp)
+        .output()
+        .await
+        .map_err(|e| HomelabError::Internal(format!("seed git push: {e}")))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let _ = tokio::fs::remove_dir_all(&tmp).await;
+        return Err(HomelabError::Internal(format!("seed git push failed: {stderr}")));
+    }
+
+    let _ = tokio::fs::remove_dir_all(&tmp).await;
+    tracing::info!(repo = %repo_path, app = %app_name, "initial commit seeded");
+    Ok(())
+}
+
 /// Remove a bare git repo directory.
 pub async fn remove(path: &str) -> Result<(), HomelabError> {
     let p = Path::new(path);

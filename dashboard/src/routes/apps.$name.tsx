@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getApp, deleteApp } from '@/lib/api'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { statusVariant } from '@/lib/utils'
 import { AppStatusPanel } from '@/features/apps/AppStatusPanel'
@@ -92,6 +93,9 @@ function AppDetail() {
         </div>
       </div>
 
+      {/* Getting Started */}
+      {a.status === 'created' && <GettingStarted appName={a.name} />}
+
       {/* Tabs */}
       <Tabs defaultValue="status">
         <TabsList>
@@ -114,5 +118,54 @@ function AppDetail() {
         </TabsContent>
       </Tabs>
     </div>
+  )
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false)
+
+  const copy = useCallback(() => {
+    navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }, [text])
+
+  return (
+    <Button variant="ghost" size="sm" onClick={copy} className="h-7 px-2 text-xs">
+      {copied ? 'Copied!' : 'Copy'}
+    </Button>
+  )
+}
+
+function CodeBlock({ children }: { children: string }) {
+  return (
+    <div className="flex items-center justify-between rounded-md bg-muted px-3 py-2">
+      <code className="text-sm break-all">{children}</code>
+      <CopyButton text={children} />
+    </div>
+  )
+}
+
+function GettingStarted({ appName }: { appName: string }) {
+  const cloneUrl = `homelab:/opt/homelab/repo/git-repos/${appName}.git`
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Getting Started</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <p className="text-sm text-muted-foreground">1. Clone the repo</p>
+          <CodeBlock>{`git clone ${cloneUrl}`}</CodeBlock>
+        </div>
+        <div className="space-y-2">
+          <p className="text-sm text-muted-foreground">
+            2. Add a Dockerfile and your app code, then push to deploy
+          </p>
+          <CodeBlock>{`cd ${appName} && git add . && git commit -m "initial" && git push origin main`}</CodeBlock>
+        </div>
+      </CardContent>
+    </Card>
   )
 }

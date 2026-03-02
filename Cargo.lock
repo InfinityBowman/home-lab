@@ -751,13 +751,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "homelab-dashboard"
-version = "0.1.0"
-dependencies = [
- "homelab-core",
-]
-
-[[package]]
 name = "homelab-db"
 version = "0.1.0"
 dependencies = [
