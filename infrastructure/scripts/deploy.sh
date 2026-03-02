@@ -45,7 +45,12 @@ git reset --hard origin/main
 AFTER_SHA=$(git rev-parse HEAD)
 log "Updated: ${BEFORE_SHA:0:8} -> ${AFTER_SHA:0:8}"
 
-# ─── 2. Build and deploy infrastructure ────────────────────────────────────
+# ─── 2. Clean up stale containers from interrupted deploys ────────────────
+# Docker renames old containers with a hash prefix during recreation.
+# If a previous deploy was interrupted, these stick around and block the next one.
+docker container prune -f --filter "label=com.docker.compose.project=infrastructure" >/dev/null 2>&1 || true
+
+# ─── 3. Build and deploy infrastructure ────────────────────────────────────
 log "Building infrastructure..."
 cd "${INFRA_DIR}"
 
@@ -67,7 +72,7 @@ else
     fail "Docker build failed. Old containers are still running. Fix and retry."
 fi
 
-# ─── 3. Update services if changed ─────────────────────────────────────────
+# ─── 4. Update services if changed ─────────────────────────────────────────
 if [[ -d "${SERVICES_DIR}" ]]; then
     for service_dir in "${SERVICES_DIR}"/*/; do
         service_name=$(basename "${service_dir}")
@@ -92,7 +97,7 @@ else
     log "No services directory found, skipping."
 fi
 
-# ─── 4. Apply Terraform (Cloudflare zone config) ─────────────────────────────
+# ─── 5. Apply Terraform (Cloudflare zone config) ─────────────────────────────
 TERRAFORM_DIR="${INFRA_DIR}/terraform"
 if [[ -d "${TERRAFORM_DIR}" ]] && command -v terraform &>/dev/null; then
     if git diff --quiet "${BEFORE_SHA}" "${AFTER_SHA}" -- "infrastructure/terraform/"; then
@@ -111,11 +116,11 @@ else
     fi
 fi
 
-# ─── 5. Cleanup ─────────────────────────────────────────────────────────────
+# ─── 6. Cleanup ─────────────────────────────────────────────────────────────
 log "Pruning dangling images..."
 docker image prune -f
 
-# ─── 6. Status ──────────────────────────────────────────────────────────────
+# ─── 7. Status ──────────────────────────────────────────────────────────────
 echo ""
 log "Deploy complete. Container status:"
 echo ""
