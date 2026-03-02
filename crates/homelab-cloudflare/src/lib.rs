@@ -13,15 +13,25 @@ const TRAEFIK_SERVICE: &str = "http://homelab-traefik:80";
 /// Takes a list of hostnames (e.g., `["my-app.lab.dev", "other.lab.dev"]`).
 /// Builds the full ingress config and PUTs it to the Cloudflare API.
 /// Also ensures CNAME records exist for each hostname.
+///
+/// Always includes a wildcard route (`*.base_domain`) so that infrastructure
+/// services (Traefik-routed via Docker labels) are reachable even when no
+/// PaaS apps are running.
 pub async fn sync_routes(
     client: &CloudflareClient,
     hostnames: &[String],
 ) -> Result<(), HomelabError> {
     // Build ingress rules — all hostnames route to Traefik
-    let routes: Vec<(String, String)> = hostnames
+    let mut routes: Vec<(String, String)> = hostnames
         .iter()
         .map(|h| (h.clone(), TRAEFIK_SERVICE.to_string()))
         .collect();
+
+    // Always include wildcard route for infrastructure services
+    let wildcard = format!("*.{}", client.base_domain());
+    if !routes.iter().any(|(h, _)| h == &wildcard) {
+        routes.insert(0, (wildcard, TRAEFIK_SERVICE.to_string()));
+    }
 
     let rules = tunnel::build_ingress_rules(&routes);
 

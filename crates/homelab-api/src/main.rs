@@ -53,6 +53,7 @@ async fn main() -> anyhow::Result<()> {
                     account_id,
                     tunnel_id,
                     zone_id,
+                    base_domain: base_domain.clone(),
                 },
             )?;
             tracing::info!("cloudflare tunnel management enabled");

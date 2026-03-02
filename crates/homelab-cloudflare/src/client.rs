@@ -12,6 +12,7 @@ pub struct CloudflareConfig {
     pub account_id: String,
     pub tunnel_id: String,
     pub zone_id: String,
+    pub base_domain: String,
 }
 
 // Manual Debug impl to redact the API token from logs.
@@ -22,6 +23,7 @@ impl fmt::Debug for CloudflareConfig {
             .field("account_id", &self.account_id)
             .field("tunnel_id", &self.tunnel_id)
             .field("zone_id", &self.zone_id)
+            .field("base_domain", &self.base_domain)
             .finish()
     }
 }
@@ -61,6 +63,11 @@ impl CloudflareClient {
     pub fn tunnel_id(&self) -> &str {
         &self.config.tunnel_id
     }
+
+    /// Get the base domain (e.g., "jacobmaynard.dev").
+    pub fn base_domain(&self) -> &str {
+        &self.config.base_domain
+    }
 }
 
 // ─── Shared Cloudflare API response types ──────────────────────────────────
@@ -94,6 +101,7 @@ mod tests {
             account_id: "acc-123".into(),
             tunnel_id: "tun-456".into(),
             zone_id: "zone-789".into(),
+            base_domain: "lab.dev".into(),
         }
     }
 
