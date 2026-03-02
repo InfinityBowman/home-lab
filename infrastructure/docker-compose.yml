@@ -44,6 +44,10 @@ services:
       dockerfile: infrastructure/Dockerfile
     container_name: homelab-paas-api
     restart: unless-stopped
+    group_add:
+      - "988"  # Host docker group GID — allows container user to access /var/run/docker.sock
+    ports:
+      - "5170:5170"  # LAN dev access
     environment:
       - DATABASE_URL=sqlite:///data/homelab.db?mode=rwc
       - DOCKER_HOST=unix:///var/run/docker.sock
@@ -70,6 +74,25 @@ services:
       - "traefik.http.routers.paas-api.middlewares=secure-chain@file"
     depends_on:
       - traefik
+
+  # ─── Dashboard (React SPA) ──────────────────────────────────────────────────
+  dashboard:
+    build:
+      context: ../dashboard
+    container_name: homelab-dashboard
+    restart: unless-stopped
+    environment:
+      - API_SECRET=${INTERNAL_HOOK_SECRET:?Set INTERNAL_HOOK_SECRET in .env}
+    networks:
+      - homelab
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homelab-dashboard.rule=Host(`dashboard.${BASE_DOMAIN:-lab.localhost}`)"
+      - "traefik.http.routers.homelab-dashboard.entrypoints=web"
+      - "traefik.http.services.homelab-dashboard.loadbalancer.server.port=80"
+      - "traefik.http.routers.homelab-dashboard.middlewares=secure-chain@file"
+    depends_on:
+      - paas-api
 
 networks:
   homelab:

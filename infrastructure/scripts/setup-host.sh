@@ -145,8 +145,11 @@ log "Creating project directories..."
 mkdir -p "${HOMELAB_DIR}"
 mkdir -p "${HOMELAB_DIR}/git-repos"
 mkdir -p "${HOMELAB_DIR}/data"
-chown -R "${MAIN_USER}:${MAIN_USER}" "${HOMELAB_DIR}"
-log "Created ${HOMELAB_DIR}/{git-repos,data}"
+chown "${MAIN_USER}:${MAIN_USER}" "${HOMELAB_DIR}"
+# git-repos and data must be writable by the API container (runs as paas, uid 1001)
+chown paas:paas "${HOMELAB_DIR}/git-repos"
+chown paas:paas "${HOMELAB_DIR}/data"
+log "Created ${HOMELAB_DIR}/{git-repos,data} (owned by paas for container access)"
 
 # ─── 7. SSH hardening ──────────────────────────────────────────────────────
 log "Hardening SSH..."

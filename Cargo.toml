@@ -7,7 +7,6 @@ members = [
     "crates/homelab-cloudflare",
     "crates/homelab-git",
     "crates/homelab-api",
-    "crates/homelab-dashboard",
 ]
 
 [workspace.dependencies]

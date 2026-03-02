@@ -48,13 +48,21 @@ jobs:
       - run: cargo test --workspace
 
   docker:
-    name: Docker Build
+    name: Docker Build (API)
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     needs: [clippy, test]
     steps:
       - uses: actions/checkout@v4
       - run: docker build -f infrastructure/Dockerfile .
+
+  docker-dashboard:
+    name: Docker Build (Dashboard)
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f dashboard/Dockerfile dashboard
 
   deploy:
     name: Deploy to Homelab

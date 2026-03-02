@@ -33,14 +33,20 @@ services/                 Self-hosted apps (each independent docker-compose)
   dozzle/                 Real-time Docker log viewer
   paleo-gateway/          Discord Gateway listener for PaleoWaifu XP system
 
-crates/                   Rust workspace (7 crates)
+crates/                   Rust workspace (6 crates)
   homelab-core/           Shared types (App, Deployment, EnvVar, AppStatus)
   homelab-db/             SQLite via sqlx
   homelab-docker/         Docker API via bollard
   homelab-cloudflare/     Tunnel + DNS management via reqwest
   homelab-git/            Bare repos + post-receive hooks
   homelab-api/            axum HTTP server (main binary, port 5170)
-  homelab-dashboard/      HTMX + Askama templates
+
+dashboard/                React SPA (Vite + React 19 + Tailwind v4 + TanStack Query)
+  src/pages/              Overview, AppDetail, CreateApp
+  src/features/apps/      Status panel, logs, deployments, env vars
+  src/lib/api.ts          API client (proxies to axum at /api/v1)
+  Dockerfile              Multi-stage build → nginx container
+  nginx.conf              SPA fallback + API proxy to paas-api
 
 migrations/               SQLite migrations (embedded at compile time by sqlx)
 docs/                     Detailed reference docs
@@ -115,6 +121,6 @@ Some services pull pre-built images from GHCR rather than building locally:
 - **Database:** SQLite (single file at `/data/homelab.db`)
 - **Proxy:** Traefik (Docker label auto-discovery, `secure-chain` middleware)
 - **Tunnel:** Cloudflare Tunnel (remote-managed, wildcard ingress)
-- **Dashboard:** HTMX + Askama + Tailwind/Pico CSS
+- **Dashboard:** React 19 + Vite + Tailwind v4 + TanStack Query (served via nginx container at `dashboard.jacobmaynard.dev`)
 - **IaC:** Terraform (Cloudflare provider) for zone-level security and access policies
 - **CI:** GitHub Actions → self-hosted runner on the laptop
