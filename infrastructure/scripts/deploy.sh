@@ -46,12 +46,20 @@ AFTER_SHA=$(git rev-parse HEAD)
 log "Updated: ${BEFORE_SHA:0:8} -> ${AFTER_SHA:0:8}"
 
 # ─── 2. Build and deploy infrastructure ────────────────────────────────────
-log "Building infrastructure (this may take a while for Rust builds)..."
+log "Building infrastructure..."
 cd "${INFRA_DIR}"
+
+# Force no-cache rebuild if Rust source or Dockerfile changed to avoid
+# BuildKit serving stale layers.
+BUILD_ARGS=""
+if ! git diff --quiet "${BEFORE_SHA}" "${AFTER_SHA}" -- "../crates/" "../Cargo.toml" "../Cargo.lock" "Dockerfile"; then
+    log "Rust source changed — building without cache..."
+    BUILD_ARGS="--no-cache"
+fi
 
 # Build the image first, separately. If the build fails, old containers
 # keep running and the script exits with an error.
-if docker compose build; then
+if docker compose build $BUILD_ARGS; then
     log "Build succeeded. Deploying..."
     docker compose up -d
     log "Infrastructure containers updated."
