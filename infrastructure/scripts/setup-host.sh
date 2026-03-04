@@ -57,6 +57,7 @@ apt-get install -y -qq \
     wget \
     htop \
     ufw \
+    fail2ban \
     ca-certificates \
     gnupg \
     lsb-release \
@@ -121,6 +122,21 @@ fi
 systemctl enable docker
 systemctl start docker
 
+# ─── 4b. Docker daemon config (log rotation + live-restore) ──────────────
+log "Configuring Docker daemon (log rotation, live-restore)..."
+cat > /etc/docker/daemon.json << 'EOF'
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  },
+  "live-restore": true
+}
+EOF
+systemctl restart docker
+log "Docker daemon configured: log rotation 10m/3 files, live-restore enabled"
+
 # ─── 5. Create paas user for git push ──────────────────────────────────────
 if id "paas" &>/dev/null; then
     warn "User 'paas' already exists, skipping..."
@@ -153,11 +169,25 @@ log "Created ${HOMELAB_DIR}/{git-repos,data} (owned by paas for container access
 
 # ─── 7. SSH hardening ──────────────────────────────────────────────────────
 log "Hardening SSH..."
-sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
-sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
-sed -i 's/^#\?PubkeyAuthentication.*/PubkeyAuthentication yes/' /etc/ssh/sshd_config
+# Use sshd_config.d drop-in (01 = loads before cloud-init's 50-cloud-init.conf).
+# In OpenSSH, first match wins, so our settings take precedence.
+cat > /etc/ssh/sshd_config.d/01-hardening.conf << 'EOF'
+# HomeLab SSH Hardening — overrides cloud-init defaults
+PasswordAuthentication no
+PermitRootLogin no
+PubkeyAuthentication yes
+MaxAuthTries 3
+LoginGraceTime 30
+X11Forwarding no
+AllowTcpForwarding no
+ClientAliveInterval 300
+ClientAliveCountMax 2
+PermitEmptyPasswords no
+EOF
+# Remove cloud-init SSH override if present (it sets PasswordAuthentication yes)
+rm -f /etc/ssh/sshd_config.d/50-cloud-init.conf
 systemctl restart ssh
-log "SSH: password auth disabled, root login disabled, key auth only"
+log "SSH: key-only auth, no root login, MaxAuthTries 3, idle timeout 5m"
 
 # ─── 8. Auto security updates ──────────────────────────────────────────────
 log "Enabling automatic security updates..."
@@ -167,11 +197,37 @@ APT::Periodic::Unattended-Upgrade "1";
 APT::Periodic::AutocleanInterval "7";
 EOF
 
-# ─── 9. Docker network ─────────────────────────────────────────────────────
+cat > /etc/apt/apt.conf.d/51unattended-upgrades-homelab << 'EOF'
+// HomeLab: auto-reboot after kernel updates and clean up unused packages
+Unattended-Upgrade::Automatic-Reboot "true";
+Unattended-Upgrade::Automatic-Reboot-Time "03:00";
+Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+Unattended-Upgrade::Remove-Unused-Dependencies "true";
+EOF
+log "Auto-reboot at 03:00 after kernel updates, unused packages cleaned"
+
+# ─── 9. Kernel tuning ──────────────────────────────────────────────────────
+log "Tuning kernel parameters..."
+cat > /etc/sysctl.d/99-homelab.conf << 'EOF'
+# HomeLab server tuning
+vm.swappiness=10
+kernel.panic=10
+kernel.panic_on_oops=1
+EOF
+sysctl -p /etc/sysctl.d/99-homelab.conf > /dev/null
+log "Kernel: swappiness=10, auto-reboot on panic after 10s"
+
+# ─── 10. journald size limit ──────────────────────────────────────────────
+log "Configuring journald size limits..."
+sed -i '/^\[Journal\]$/a SystemMaxUse=200M\nSystemMaxFileSize=50M' /etc/systemd/journald.conf
+systemctl restart systemd-journald
+log "journald: max 200M total, 50M per file"
+
+# ─── 11. Docker network ───────────────────────────────────────────────────
 log "Creating homelab Docker network..."
 docker network create homelab 2>/dev/null || warn "Network 'homelab' already exists"
 
-# ─── 10. Static IP (applied last — may disconnect SSH) ─────────────────────
+# ─── 12. Static IP (applied last — may disconnect SSH) ─────────────────────
 log "Configuring static IP: ${STATIC_IP}..."
 
 # Detect active WiFi interface and SSID
@@ -299,7 +355,12 @@ log "Hostname:     ${HOSTNAME}"
 log "Timezone:     ${TIMEZONE}"
 log "Docker:       $(docker --version 2>/dev/null || echo 'not installed')"
 log "Firewall:     active (22, 80, 443)"
-log "SSH:          key-only auth"
+log "SSH:          key-only, MaxAuthTries 3, idle timeout 5m"
+log "fail2ban:     active (SSH protection)"
+log "Docker logs:  10m/3 files, live-restore on"
+log "Kernel:       swappiness=10, panic reboot=10s"
+log "journald:     max 200M"
+log "Auto-updates: security patches + reboot at 03:00"
 log "Lid suspend:  disabled"
 log "Project dir:  ${HOMELAB_DIR}"
 echo ""

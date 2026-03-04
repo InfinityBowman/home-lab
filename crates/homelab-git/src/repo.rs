@@ -105,11 +105,13 @@ CMD ["node", "server.js"]
 
     // Write a simple server.js
     let server = format!(
-        r#"const http = require("http");
-const server = http.createServer((req, res) => {{
+        r#"import {{ createServer }} from "node:http";
+
+const server = createServer((req, res) => {{
   res.writeHead(200, {{ "Content-Type": "text/plain" }});
-  res.end("Hello from {app_name}!\\n");
+  res.end("Hello from {app_name}!\n");
 }});
+
 server.listen({port}, () => console.log("Listening on :{port}"));
 "#
     );

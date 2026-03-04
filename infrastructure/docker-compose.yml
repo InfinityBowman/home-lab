@@ -1,7 +1,7 @@
 services:
   # ─── Reverse Proxy ──────────────────────────────────────────────────────────
   traefik:
-    image: traefik:latest
+    image: traefik:v3.6.9
     container_name: homelab-traefik
     restart: unless-stopped
     command:
@@ -47,7 +47,7 @@ services:
     group_add:
       - "988"  # Host docker group GID — allows container user to access /var/run/docker.sock
     ports:
-      - "5170:5170"  # LAN dev access
+      - "127.0.0.1:5170:5170"  # Localhost only — access via Traefik
     environment:
       - DATABASE_URL=sqlite:///data/homelab.db?mode=rwc
       - DOCKER_HOST=unix:///var/run/docker.sock
