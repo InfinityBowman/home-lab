@@ -139,14 +139,19 @@ sudo netplan apply
 sudo apt update && sudo apt upgrade -y
 ```
 
-### Set up firewall
+### Set up firewall and fail2ban
 ```bash
+sudo apt install -y fail2ban
+sudo systemctl enable fail2ban
+
 sudo ufw allow 22/tcp    # SSH
 sudo ufw allow 80/tcp    # HTTP (Traefik)
 sudo ufw allow 443/tcp   # HTTPS (Traefik)
 sudo ufw enable
 sudo ufw status
 ```
+
+fail2ban watches SSH logs for repeated failed login attempts and automatically bans the offending IP.
 
 ### Disable laptop lid close suspend
 
@@ -287,13 +292,37 @@ sudo systemctl is-enabled docker
 # Should say "enabled"
 ```
 
+### Automatic security updates and reboot
+
+The setup script configures unattended-upgrades to auto-install security patches and auto-reboot at 3:00 AM when kernel updates require it. Verify:
+```bash
+cat /etc/apt/apt.conf.d/20auto-upgrades
+cat /etc/apt/apt.conf.d/51unattended-upgrades-homelab
+```
+
+### Kernel tuning
+
+The setup script configures `/etc/sysctl.d/99-homelab.conf` with:
+- `vm.swappiness=10` — only swap under real memory pressure
+- `kernel.panic=10` — auto-reboot after kernel panic (headless server would otherwise hang forever)
+
+### Docker daemon config
+
+`/etc/docker/daemon.json` is configured with:
+- **Log rotation** — 10 MB max per log file, 3 files max per container (prevents unbounded disk usage)
+- **Live-restore** — containers keep running during Docker daemon restarts (e.g., Docker updates)
+
+### journald size limit
+
+System logs are capped at 200 MB total via `/etc/systemd/journald.conf`.
+
 ## 10. Keeping the Laptop Happy as a Server
 
 - **Power:** Keep it plugged in at all times
 - **Lid:** Can be closed (we disabled suspend above)
 - **Thermals:** Keep it on a hard surface with airflow, not on carpet/bed
 - **Monitoring:** `htop` for CPU/RAM, `df -h` for disk, `docker stats` for container resources
-- **Updates:** Run `sudo apt update && sudo apt upgrade -y` periodically
+- **Updates:** Security patches are auto-installed. The server will auto-reboot at 3:00 AM if a kernel update requires it. For non-security updates, run `sudo apt update && sudo apt upgrade -y` periodically
 - **Backups:** The SQLite DB is in `/opt/homelab/data/`. Back it up occasionally:
   ```bash
   cp /opt/homelab/data/homelab.db /opt/homelab/data/homelab.db.bak.$(date +%Y%m%d)

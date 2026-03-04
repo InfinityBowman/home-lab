@@ -1,0 +1,25 @@
+name: Deploy Paleo Editor
+
+on:
+  repository_dispatch:
+    types: [deploy-paleo-editor]
+
+jobs:
+  deploy:
+    name: Pull & Restart
+    runs-on: [self-hosted, homelab]
+    concurrency:
+      group: deploy-paleo-editor
+      cancel-in-progress: true
+    defaults:
+      run:
+        working-directory: /opt/homelab/repo/services/paleo-editor
+    steps:
+      - name: Pull latest image
+        run: docker compose pull
+
+      - name: Restart service
+        run: docker compose up -d
+
+      - name: Show status
+        run: docker ps --filter name=homelab-paleo-editor --format "table {{.Names}}\t{{.Status}}\t{{.Image}}"

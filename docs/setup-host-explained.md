@@ -49,6 +49,7 @@ Like "Check for Updates" on your phone. Ubuntu ships with whatever was current w
 | `ca-certificates` | Trusted SSL certificates | Without these, your server can't verify HTTPS connections. Needed for Docker image pulls, Cloudflare API calls, etc. |
 | `gnupg` | Encryption/signing tool | Used to verify that the Docker packages we download are legit (signed by Docker Inc) |
 | `lsb-release` | Reports which Ubuntu version you're on | The Docker install script needs to know your Ubuntu version to pick the right package repository |
+| `fail2ban` | Brute-force protection | Watches SSH logs for repeated failed login attempts and automatically bans the offending IP via firewall rules. |
 | `unattended-upgrades` | Auto-installs security patches | You don't want to manually SSH in every week to run updates. This handles critical security fixes automatically. |
 
 ---
@@ -166,11 +167,23 @@ When you `git push` to a bare repo, it triggers a "hook" (a script that runs aut
 
 ### 7. SSH Hardening
 
+The script drops a config file at `/etc/ssh/sshd_config.d/01-hardening.conf`:
+
 ```bash
 PasswordAuthentication no     # Can't log in with a password
 PermitRootLogin no            # Can't log in as root at all
 PubkeyAuthentication yes      # Must use SSH keys
+MaxAuthTries 3                # Kick after 3 failed attempts
+LoginGraceTime 30             # 30 seconds to authenticate or get disconnected
+X11Forwarding no              # No GUI forwarding (headless server)
+AllowTcpForwarding no         # No SSH tunneling
+ClientAliveInterval 300       # Ping idle clients every 5 minutes
+ClientAliveCountMax 2         # Disconnect after 2 missed pings (10 min idle timeout)
 ```
+
+**Why `sshd_config.d/` instead of editing `sshd_config` directly?**
+
+Ubuntu 24.04 uses cloud-init, which drops its own SSH config at `50-cloud-init.conf` with `PasswordAuthentication yes`. In OpenSSH, **first match wins** — files in `sshd_config.d/` are loaded in alphabetical order. By naming ours `01-hardening.conf`, it loads before cloud-init's file and our settings take precedence. The script also removes cloud-init's override to be safe.
 
 **Why disable password auth?**
 
@@ -194,9 +207,38 @@ APT::Periodic::AutocleanInterval "7";           # Clean up old packages weekly
 
 Linux software gets security patches frequently. This ensures critical fixes are applied automatically without you having to remember. It only installs security updates, not major version changes, so it won't break anything.
 
+The script also configures:
+- **Auto-reboot at 3:00 AM** — some security patches (especially kernel updates) don't take effect until a reboot. Without this, the patched kernel would be downloaded but the old vulnerable one keeps running.
+- **Unused dependency cleanup** — removes packages that were pulled in as dependencies but are no longer needed after updates.
+
 ---
 
-### 9. Docker Network
+### 9. Kernel Tuning
+
+```bash
+vm.swappiness=10         # Only swap under real memory pressure
+kernel.panic=10          # Auto-reboot 10 seconds after a kernel panic
+kernel.panic_on_oops=1   # Treat kernel oops as panic (reboot instead of hang)
+```
+
+**`vm.swappiness=10`** — The default (60) makes Linux start swapping memory to disk even with plenty of free RAM. For a server with 16 GB, `10` means it only swaps when genuinely running low, avoiding unnecessary disk I/O.
+
+**`kernel.panic=10`** — If the kernel crashes, the server would normally freeze forever. On a headless server with no monitor, you'd never know. This makes it automatically reboot after 10 seconds instead.
+
+---
+
+### 10. journald Size Limit
+
+```bash
+SystemMaxUse=200M        # Cap total journal size at 200 MB
+SystemMaxFileSize=50M    # Cap individual journal files at 50 MB
+```
+
+`journald` is the system log daemon — it collects logs from all services, the kernel, SSH, etc. Without a cap, it could eventually consume gigabytes. 200 MB is more than enough for a home server and keeps disk usage predictable.
+
+---
+
+### 11. Docker Network
 
 ```bash
 docker network create homelab
@@ -215,7 +257,7 @@ Containers on the same network can find each other by name. So an app can connec
 
 ---
 
-### 10. Static IP
+### 12. Static IP
 
 **What's DHCP vs static?**
 

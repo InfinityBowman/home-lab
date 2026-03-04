@@ -8,7 +8,7 @@ Full breakdown of the infrastructure Docker Compose configuration.
 
 ```yaml
 traefik:
-  image: traefik:v3.3
+  image: traefik:v3.6.9
   container_name: homelab-traefik
   restart: unless-stopped
   command:
@@ -23,7 +23,7 @@ traefik:
   ports:
     - "80:80"
     - "443:443"
-    - "8080:8080"      # Traefik dashboard (local access only)
+    - "127.0.0.1:8080:8080"  # Traefik dashboard (localhost only)
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock:ro
   networks:
@@ -77,7 +77,7 @@ paas-api:
     - ../git-repos:/git-repos
     - ../data:/data
   ports:
-    - "5170:5170"
+    - "127.0.0.1:5170:5170"  # Localhost only — access via Traefik
   networks:
     - homelab
   labels:
@@ -122,7 +122,7 @@ All services and deployed app containers join this network. This is how:
 
 ```dockerfile
 # Stage 1: Build the Rust binary
-FROM rust:1.84-bookworm AS builder
+FROM rust:1.91-bookworm AS builder
 WORKDIR /app
 COPY Cargo.toml Cargo.lock ./
 COPY crates/ crates/

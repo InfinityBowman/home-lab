@@ -1,0 +1,37 @@
+name: paleo-editor
+
+services:
+  editor:
+    image: ghcr.io/infinitybowman/paleo-waifu-editor:latest
+    container_name: homelab-paleo-editor
+    restart: unless-stopped
+    environment:
+      - CF_ACCOUNT_ID=${CF_ACCOUNT_ID:?Set CF_ACCOUNT_ID in .env}
+      - CF_D1_DATABASE_ID=${CF_D1_DATABASE_ID:?Set CF_D1_DATABASE_ID in .env}
+      - CF_API_TOKEN=${CF_API_TOKEN:?Set CF_API_TOKEN in .env}
+      - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID:?Set R2_ACCESS_KEY_ID in .env}
+      - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY:?Set R2_SECRET_ACCESS_KEY in .env}
+      - R2_BUCKET_NAME=${R2_BUCKET_NAME:-paleo-waifu-images}
+      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID:?Set DISCORD_CLIENT_ID in .env}
+      - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET:?Set DISCORD_CLIENT_SECRET in .env}
+      - AUTH_SECRET=${AUTH_SECRET:?Set AUTH_SECRET in .env}
+      - EDITOR_URL=https://editor.${BASE_DOMAIN}
+      - NODE_ENV=production
+    volumes:
+      - editor_images:/app/data/images
+    mem_limit: 512m
+    networks:
+      - homelab
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homelab-editor.rule=Host(`editor.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.homelab-editor.entrypoints=web"
+      - "traefik.http.services.homelab-editor.loadbalancer.server.port=4100"
+      - "traefik.http.routers.homelab-editor.middlewares=secure-chain@file"
+
+volumes:
+  editor_images:
+
+networks:
+  homelab:
+    external: true
