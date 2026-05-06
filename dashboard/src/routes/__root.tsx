@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   PlusCircle,
   BookOpen,
+  KeyRound,
 } from 'lucide-react'
 
 export const Route = createRootRoute({
@@ -13,6 +14,7 @@ export const Route = createRootRoute({
 const navItems = [
   { to: '/' as const, label: 'Overview', icon: LayoutDashboard },
   { to: '/apps/new' as const, label: 'Create App', icon: PlusCircle },
+  { to: '/services' as const, label: 'Services', icon: KeyRound },
   { to: '/docs' as const, label: 'Docs', icon: BookOpen },
 ]
 

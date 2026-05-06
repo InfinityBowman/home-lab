@@ -48,6 +48,13 @@ export interface MaskedEnvVar {
   value: string
 }
 
+export interface Service {
+  id: string
+  name: string
+  compose_path: string
+  created_at: string
+}
+
 export interface ApiResponse<T> {
   success: boolean
   data?: T

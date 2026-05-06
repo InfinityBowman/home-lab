@@ -1,5 +1,6 @@
 pub mod builder;
 pub mod client;
+pub mod compose;
 pub mod containers;
 pub mod labels;
 pub mod logs;

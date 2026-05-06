@@ -58,12 +58,15 @@ services:
       - CLOUDFLARE_ACCOUNT_ID=${CLOUDFLARE_ACCOUNT_ID:-}
       - CLOUDFLARE_TUNNEL_ID=${CLOUDFLARE_TUNNEL_ID:-}
       - CLOUDFLARE_ZONE_ID=${CLOUDFLARE_ZONE_ID:-}
+      - SECRETS_ENCRYPTION_KEY=${SECRETS_ENCRYPTION_KEY:-}
+      - SERVICES_PATH=/services
       - PORT=5170
       - RUST_LOG=info,homelab=debug
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ../git-repos:/git-repos
       - ../data:/data
+      - ../services:/services
     networks:
       - homelab
     labels:

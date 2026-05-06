@@ -72,6 +72,20 @@ else
     fail "Docker build failed. Old containers are still running. Fix and retry."
 fi
 
+# ─── 3.5. Sync service secrets from encrypted DB ──────────────────────────
+if [[ -f "${REPO_DIR}/data/homelab.db" ]] && [[ -n "${SECRETS_ENCRYPTION_KEY:-}" ]]; then
+    log "Syncing service secrets from database..."
+    docker run --rm \
+        -v "${REPO_DIR}/data:/data" \
+        -v "${SERVICES_DIR}:${SERVICES_DIR}" \
+        -e DATABASE_URL="sqlite:///data/homelab.db?mode=rwc" \
+        -e SECRETS_ENCRYPTION_KEY="${SECRETS_ENCRYPTION_KEY}" \
+        homelab-paas-api --sync-secrets 2>&1 || warn "Secrets sync failed (non-fatal)."
+    log "Service secrets synced."
+else
+    log "Secrets sync skipped (no DB or no encryption key)."
+fi
+
 # ─── 4. Update services if changed ─────────────────────────────────────────
 if [[ -d "${SERVICES_DIR}" ]]; then
     for service_dir in "${SERVICES_DIR}"/*/; do

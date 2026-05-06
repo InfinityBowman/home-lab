@@ -2,6 +2,8 @@ pub mod app_repo;
 pub mod audit_repo;
 pub mod deployment_repo;
 pub mod env_var_repo;
+pub mod service_repo;
+pub mod service_secret_repo;
 
 use sqlx::SqlitePool;
 use sqlx::sqlite::SqlitePoolOptions;

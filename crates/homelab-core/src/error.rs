@@ -20,6 +20,9 @@ pub enum HomelabError {
     #[error("database error: {0}")]
     Database(String),
 
+    #[error("encryption error: {0}")]
+    Encryption(String),
+
     #[error("internal error: {0}")]
     Internal(String),
 }

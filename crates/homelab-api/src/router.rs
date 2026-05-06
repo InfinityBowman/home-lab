@@ -46,6 +46,27 @@ pub fn build(state: AppState) -> Router {
             get(handlers::env_vars::list).put(handlers::env_vars::bulk_set),
         )
         .route("/apps/{name}/env/{key}", delete(handlers::env_vars::delete))
+        // Services
+        .route(
+            "/services",
+            get(handlers::services::list).post(handlers::services::create),
+        )
+        .route(
+            "/services/{name}",
+            get(handlers::services::get).delete(handlers::services::delete),
+        )
+        .route(
+            "/services/{name}/secrets",
+            get(handlers::services::list_secrets).put(handlers::services::bulk_set_secrets),
+        )
+        .route(
+            "/services/{name}/secrets/{key}",
+            delete(handlers::services::delete_secret),
+        )
+        .route(
+            "/services/{name}/secrets/reveal",
+            post(handlers::services::reveal_secret),
+        )
         // System
         .route("/system/info", get(handlers::system::info))
         .layer(middleware::from_fn_with_state(

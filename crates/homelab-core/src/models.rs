@@ -125,6 +125,16 @@ pub struct AuditEntry {
     pub created_at: String,
 }
 
+// ─── Service (docker-compose services) ──────────────────────────────────────
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Service {
+    pub id: String,
+    pub name: String,
+    pub compose_path: String,
+    pub created_at: String,
+}
+
 // ─── API Request/Response types ─────────────────────────────────────────────
 
 #[derive(Debug, Deserialize)]

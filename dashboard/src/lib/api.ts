@@ -4,6 +4,7 @@ import type {
   ContainerStatus,
   Deployment,
   MaskedEnvVar,
+  Service,
 } from '@/types/api'
 
 class ApiError extends Error {
@@ -98,5 +99,33 @@ export const bulkSetEnvVars = (name: string, vars: Record<string, string>) =>
   })
 export const deleteEnvVar = (name: string, key: string) =>
   request<void>(`/apps/${name}/env/${key}`, { method: 'DELETE' })
+
+// Services
+export const listServices = () => request<Service[]>('/services')
+export const createService = (data: { name: string }) =>
+  request<Service>('/services', { method: 'POST', body: JSON.stringify(data) })
+export const getService = (name: string) =>
+  request<Service>(`/services/${name}`)
+export const deleteService = (name: string) =>
+  request<void>(`/services/${name}`, { method: 'DELETE' })
+
+// Service secrets
+export const listServiceSecrets = (name: string) =>
+  request<MaskedEnvVar[]>(`/services/${name}/secrets`)
+export const bulkSetServiceSecrets = (
+  name: string,
+  vars: Record<string, string>,
+) =>
+  request<void>(`/services/${name}/secrets`, {
+    method: 'PUT',
+    body: JSON.stringify(vars),
+  })
+export const deleteServiceSecret = (name: string, key: string) =>
+  request<void>(`/services/${name}/secrets/${key}`, { method: 'DELETE' })
+export const revealServiceSecret = (name: string, key: string) =>
+  request<{ key: string; value: string }>(`/services/${name}/secrets/reveal`, {
+    method: 'POST',
+    body: JSON.stringify({ key }),
+  })
 
 export { ApiError }

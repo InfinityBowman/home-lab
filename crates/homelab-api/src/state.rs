@@ -1,5 +1,6 @@
 use bollard::Docker;
 use homelab_cloudflare::client::CloudflareClient;
+use homelab_core::SecretsCipher;
 use sqlx::SqlitePool;
 
 #[derive(Clone)]
@@ -7,6 +8,7 @@ pub struct AppState {
     pub db: SqlitePool,
     pub docker: Docker,
     pub cloudflare: Option<CloudflareClient>,
+    pub cipher: Option<SecretsCipher>,
     pub config: AppConfig,
 }
 
@@ -16,4 +18,5 @@ pub struct AppConfig {
     pub base_domain: String,
     pub internal_hook_secret: String,
     pub api_port: u16,
+    pub services_path: String,
 }
