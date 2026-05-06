@@ -143,7 +143,6 @@ export function ServiceSecretsPanel({
           value={newValue}
           onChange={(e) => setNewValue(e.target.value)}
           placeholder="value"
-          type="password"
           className="flex-1 font-mono text-xs"
         />
         <Button

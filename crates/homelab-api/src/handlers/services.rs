@@ -136,8 +136,9 @@ pub async fn bulk_set_secrets(
 
     homelab_db::service_secret_repo::bulk_set(&state.db, &service.id, &entries).await?;
 
-    // Write .env file and restart the service
-    sync_and_restart(&state, &service).await?;
+    if let Err(e) = sync_and_restart(&state, &service).await {
+        tracing::warn!(service = %name, error = %e, "failed to sync/restart after secrets update");
+    }
 
     homelab_db::audit_repo::create(
         &state.db,
@@ -162,7 +163,9 @@ pub async fn delete_secret(
     let service = homelab_db::service_repo::get_by_name(&state.db, &name).await?;
     homelab_db::service_secret_repo::delete(&state.db, &service.id, &key).await?;
 
-    sync_and_restart(&state, &service).await?;
+    if let Err(e) = sync_and_restart(&state, &service).await {
+        tracing::warn!(service = %name, error = %e, "failed to sync/restart after secret deletion");
+    }
 
     homelab_db::audit_repo::create(
         &state.db,
