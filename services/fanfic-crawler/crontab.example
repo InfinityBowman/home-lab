@@ -1,0 +1,16 @@
+# Fanfic Crawler cron jobs
+# Add these to the homelab user's crontab: crontab -e
+#
+# Logs go to /var/log/fanfic-crawler/ — create dir first:
+#   sudo mkdir -p /var/log/fanfic-crawler && sudo chown $USER /var/log/fanfic-crawler
+
+COMPOSE_FILE=/opt/homelab/repo/services/fanfic-crawler/docker-compose.yml
+
+# Discover new work IDs every Sunday at 2am
+0 2 * * 0  docker compose -f $COMPOSE_FILE run --rm crawler --discover "Hazbin Hotel (Cartoon)" >> /var/log/fanfic-crawler/discover.log 2>&1
+
+# Crawl new works nightly at 3am
+0 3 * * *  docker compose -f $COMPOSE_FILE run --rm crawler --crawl "Hazbin Hotel (Cartoon)" >> /var/log/fanfic-crawler/crawl.log 2>&1
+
+# Refresh stale metadata every Wednesday at 2am
+0 2 * * 3  docker compose -f $COMPOSE_FILE run --rm crawler --refresh "Hazbin Hotel (Cartoon)" 7 >> /var/log/fanfic-crawler/refresh.log 2>&1

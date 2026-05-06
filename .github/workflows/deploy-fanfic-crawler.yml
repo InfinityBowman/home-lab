@@ -1,0 +1,25 @@
+name: Deploy Fanfic Crawler
+
+on:
+  repository_dispatch:
+    types: [deploy-fanfic-crawler]
+
+jobs:
+  deploy:
+    name: Pull & Restart
+    runs-on: [self-hosted, homelab]
+    concurrency:
+      group: deploy-fanfic-crawler
+      cancel-in-progress: true
+    defaults:
+      run:
+        working-directory: /opt/homelab/repo/services/fanfic-crawler
+    steps:
+      - name: Pull latest image
+        run: docker compose pull
+
+      - name: Recreate container (picks up new image on next cron run)
+        run: docker compose up -d
+
+      - name: Show status
+        run: docker ps --filter name=homelab-fanfic-crawler --format "table {{.Names}}\t{{.Status}}\t{{.Image}}"

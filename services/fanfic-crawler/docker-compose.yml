@@ -1,0 +1,17 @@
+name: fanfic-crawler
+
+services:
+  crawler:
+    image: ghcr.io/infinitybowman/fanfic-crawler:latest
+    container_name: homelab-fanfic-crawler
+    restart: "no"
+    environment:
+      - API_URL=${API_URL:?Set API_URL in .env}
+      - API_SECRET=${API_SECRET:?Set API_SECRET in .env}
+      - CRAWLER_HEADLESS=true
+    volumes:
+      - crawler-data:/app/apps/crawler/data
+    mem_limit: 2g
+
+volumes:
+  crawler-data:
