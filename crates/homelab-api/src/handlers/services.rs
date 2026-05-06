@@ -102,8 +102,7 @@ pub async fn list_secrets(
 ) -> Result<Json<ApiResponse<Vec<MaskedSecret>>>, ApiError> {
     let cipher = require_cipher(&state)?;
     let service = homelab_db::service_repo::get_by_name(&state.db, &name).await?;
-    let rows =
-        homelab_db::service_secret_repo::get_by_service(&state.db, &service.id).await?;
+    let rows = homelab_db::service_secret_repo::get_by_service(&state.db, &service.id).await?;
 
     let masked: Vec<MaskedSecret> = rows
         .into_iter()
@@ -194,8 +193,7 @@ pub async fn reveal_secret(
 ) -> Result<Json<ApiResponse<RevealedSecret>>, ApiError> {
     let cipher = require_cipher(&state)?;
     let service = homelab_db::service_repo::get_by_name(&state.db, &name).await?;
-    let rows =
-        homelab_db::service_secret_repo::get_by_service(&state.db, &service.id).await?;
+    let rows = homelab_db::service_secret_repo::get_by_service(&state.db, &service.id).await?;
 
     let row = rows
         .into_iter()
@@ -220,17 +218,13 @@ pub async fn reveal_secret(
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-async fn sync_and_restart(
-    state: &AppState,
-    service: &Service,
-) -> Result<(), HomelabError> {
+async fn sync_and_restart(state: &AppState, service: &Service) -> Result<(), HomelabError> {
     let cipher = state
         .cipher
         .as_ref()
         .ok_or_else(|| HomelabError::Internal("cipher not configured".into()))?;
 
-    let rows =
-        homelab_db::service_secret_repo::get_by_service(&state.db, &service.id).await?;
+    let rows = homelab_db::service_secret_repo::get_by_service(&state.db, &service.id).await?;
 
     let vars: Vec<(String, String)> = rows
         .into_iter()

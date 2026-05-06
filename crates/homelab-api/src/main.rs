@@ -113,7 +113,8 @@ async fn sync_secrets(
     database_url: &str,
     cipher: Option<homelab_core::SecretsCipher>,
 ) -> anyhow::Result<()> {
-    let cipher = cipher.ok_or_else(|| anyhow::anyhow!("SECRETS_ENCRYPTION_KEY is required for --sync-secrets"))?;
+    let cipher = cipher
+        .ok_or_else(|| anyhow::anyhow!("SECRETS_ENCRYPTION_KEY is required for --sync-secrets"))?;
 
     let db = homelab_db::init_pool(database_url).await?;
     homelab_db::run_migrations(&db).await?;
