@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { KeyRound } from 'lucide-react'
 import { timeAgo } from '@/lib/utils'
 
-export const Route = createFileRoute('/services')({
+export const Route = createFileRoute('/services/')({
   component: Services,
 })
 
