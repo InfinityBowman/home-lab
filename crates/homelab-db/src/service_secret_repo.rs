@@ -91,11 +91,7 @@ pub async fn get_by_service(
     Ok(rows.into_iter().map(Into::into).collect())
 }
 
-pub async fn delete(
-    pool: &SqlitePool,
-    service_id: &str,
-    key: &str,
-) -> Result<(), HomelabError> {
+pub async fn delete(pool: &SqlitePool, service_id: &str, key: &str) -> Result<(), HomelabError> {
     let result = sqlx::query("DELETE FROM service_secrets WHERE service_id = ? AND key = ?")
         .bind(service_id)
         .bind(key)

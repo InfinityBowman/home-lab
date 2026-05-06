@@ -10,9 +10,8 @@ pub struct SecretsCipher {
 
 impl SecretsCipher {
     pub fn new(key_hex: &str) -> Result<Self, HomelabError> {
-        let key_bytes = hex_decode(key_hex).map_err(|e| {
-            HomelabError::Encryption(format!("invalid encryption key hex: {e}"))
-        })?;
+        let key_bytes = hex_decode(key_hex)
+            .map_err(|e| HomelabError::Encryption(format!("invalid encryption key hex: {e}")))?;
         if key_bytes.len() != 32 {
             return Err(HomelabError::Encryption(format!(
                 "encryption key must be 32 bytes, got {}",
@@ -86,6 +85,9 @@ mod tests {
 
     #[test]
     fn rejects_invalid_hex() {
-        assert!(SecretsCipher::new("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz").is_err());
+        assert!(
+            SecretsCipher::new("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz")
+                .is_err()
+        );
     }
 }
