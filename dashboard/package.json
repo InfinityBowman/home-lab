@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
+    "onlyBuiltDependencies": ["esbuild", "msw", "unrs-resolver"]
   },
   "scripts": {
     "dev": "portless homelab-dash vite dev",
