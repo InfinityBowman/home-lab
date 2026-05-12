@@ -19,7 +19,7 @@ jobs:
         run: docker compose pull
 
       - name: Recreate container (picks up new image on next cron run)
-        run: docker compose up -d
+        run: docker compose up -d --force-recreate
 
       - name: Show status
         run: docker ps --filter name=homelab-fanfic-crawler --format "table {{.Names}}\t{{.Status}}\t{{.Image}}"
