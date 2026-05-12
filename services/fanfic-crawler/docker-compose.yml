@@ -6,8 +6,7 @@ services:
     container_name: homelab-fanfic-crawler
     restart: "no"
     environment:
-      - API_URL=${API_URL:?Set API_URL in .env}
-      - API_SECRET=${API_SECRET:?Set API_SECRET in .env}
+      - DATABASE_URL=${DATABASE_URL:?Set DATABASE_URL in .env}
       - CRAWLER_HEADLESS=true
     volumes:
       - crawler-data:/app/apps/crawler/data
